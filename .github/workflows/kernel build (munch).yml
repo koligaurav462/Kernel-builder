@@ -90,19 +90,7 @@ jobs:
         echo "kernel-folder=$(pwd)/kernel_tree" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
       id: kernel
-
-    - name: Adding KernelSU
-      if: ${{ steps.workspace.outputs.kernelsu == 'Yes' }}
-      run: |
-        if [ -d "KernelSU" ]; then
-          rm -rf "KernelSU"
-        fi
-        if [ -d "drivers/kernelsu" ]; then
-          rm -rf "drivers/kernelsu"
-        fi
-        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
-      working-directory: ${{ steps.kernel.outputs.kernel-folder }}
-
+      
     - name: Building kernel
       run: |
         git submodule init && git submodule update
