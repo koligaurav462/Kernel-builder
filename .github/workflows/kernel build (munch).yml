@@ -96,8 +96,8 @@ jobs:
         git submodule init && git submodule update
         export ARCH=arm64
         export SUBARCH=ARM64
-        export KBUILD_BUILD_USER="Gaurav"
-        export KBUILD_BUILD_HOST="munch2004"
+        export KBUILD_BUILD_USER="build-user"
+        export KBUILD_BUILD_HOST="build-host"
         make O=out vendor/munch_defconfig PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH"
         make O=out CC=clang -j$(nproc --all) PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH" CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1
         echo "elapsed_time=$(echo "$(date +%s)"-"${{ steps.workspace.outputs.start_time }}" | bc)" >> $GITHUB_OUTPUT
