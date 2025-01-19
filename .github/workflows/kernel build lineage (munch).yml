@@ -138,7 +138,6 @@ jobs:
         ls -al ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/
 
     - name: Upload to Release
-    - name: Upload to Release
       if: ${{ github.event.inputs.UPLOAD_TO_RELEASE == 'true' }}
       uses: softprops/action-gh-release@v2
       with:
