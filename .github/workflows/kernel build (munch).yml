@@ -8,12 +8,12 @@ on:
         required: false
       KERNEL_TREE:
         description: 'Kernel Tree'
-        default: 'https://github.com/Orion462/kernel_xiaomi_sm8250.git'
+        default: 'https://github.com/LineageOS/android_kernel_xiaomi_sm8250.git'
         required: true
       KERNEL_TREE_BRANCH:
         description: 'Kernel Tree Branch'
         required: true
-        default: 'munch'
+        default: 'lineage-22.1'
       CODENAME:
         description: 'Phone Codename'
         default: 'munch'
@@ -98,7 +98,7 @@ jobs:
         export SUBARCH=ARM64
         export KBUILD_BUILD_USER="build-user"
         export KBUILD_BUILD_HOST="build-host"
-        make O=out vendor/munch_defconfig PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH"
+        make O=out vendor/kona-perf_defconfig vendor/xiaomi/sm8250-common.config vendor/xiaomi/munch.config PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH"
         make O=out CC=clang -j$(nproc --all) PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH" CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1
         echo "elapsed_time=$(echo "$(date +%s)"-"${{ steps.workspace.outputs.start_time }}" | bc)" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.kernel.outputs.kernel-folder }}
