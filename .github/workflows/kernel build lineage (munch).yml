@@ -125,7 +125,7 @@ jobs:
         if [ -e "dtbo.img" ]; then
           cp -f dtbo.img AnyKernel3
         fi
-        name=Perf+-Aosp-${{ github.event.inputs.CODENAME }}
+        name=Perf+Aosp-${{ github.event.inputs.CODENAME }}.zip
         cd AnyKernel3
         zip -q -r $name *
         mv $name ../
