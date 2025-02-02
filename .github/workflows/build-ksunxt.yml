@@ -8,23 +8,23 @@ on:
         required: false
       KERNEL_TREE:
         description: 'Kernel Tree'
-        default: 'https://github.com/Orion462/kernel_xiaomi_sm8250.git'
+        default: 'https://github.com/MiCode/Xiaomi_Kernel_OpenSource.git'
         required: true
       KERNEL_TREE_BRANCH:
         description: 'Kernel Tree Branch'
         required: true
-        default: 'munch'
+        default: 'munch-s-oss'
       CODENAME:
         description: 'Phone Codename'
         default: 'munch'
         required: true
       ANYKERNEL_URL:
         description: 'AnyKernel Url (leave blank if you dont want AnyKernel)'
-        default: 'https://github.com/Orion462/AnyKernel3'
+        default: 'https://github.com/itisFarzin-Phone/AnyKernel3'
         required: false
       ANYKERNEL_BRANCH:
         description: 'AnyKernel Branch (defaults to codename)'
-        default: 'master'
+        default: 'munch'
         required: false
       CLANG_GIT_LINK:
         description: 'Clang Git URL'
@@ -93,8 +93,6 @@ jobs:
       
     - name: Building kernel
       run: |
-        rm -rf KernelSU-Next
-        curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
         git submodule init && git submodule update
         export ARCH=arm64
         export SUBARCH=ARM64
@@ -108,6 +106,7 @@ jobs:
 
     - name: AnyKernel3
       if: ${{ success() && github.event.inputs.ANYKERNEL_URL != '' }}
+      continue-on-error: true
       run: |
         if [[ -z "${{ github.event.inputs.ANYKERNEL_BRANCH }}" ]]; then
           anykernel_branch=${{ github.event.inputs.CODENAME }}
@@ -115,19 +114,12 @@ jobs:
           anykernel_branch=${{ github.event.inputs.ANYKERNEL_BRANCH }}
         fi
         git clone --recursive --depth=1 ${{ github.event.inputs.ANYKERNEL_URL }} -b $anykernel_branch AnyKernel3
-        # Check if Image.gz exists, then copy it to AnyKernel3 folder
-        if [ -e "Image.gz" ]; then
+        if [ -e "Image.gz-dtb" ]; then
+          cp -f Image.gz-dtb AnyKernel3
+        elif [ -e "Image.gz" ]; then
           cp -f Image.gz AnyKernel3
         fi
-        # Check if dtb.img exists, then rename and copy it to AnyKernel3 folder
-        if [ -e "dtb.img" ]; then
-          cp -f dtb.img AnyKernel3/dtb
-        fi
-        # Check if dtbo.img exists, then copy it to AnyKernel3 folder
-        if [ -e "dtbo.img" ]; then
-          cp -f dtbo.img AnyKernel3
-        fi
-        name=N0kernel-AOSP-${{ github.event.inputs.CODENAME }}.zip
+        name=FlashableKernel-${{ github.event.inputs.CODENAME }}${{ fromJSON('["", "-KSU"]')[fromJSON(github.event.inputs.ENABLE_KERNELSU)] }}.zip
         cd AnyKernel3
         zip -q -r $name *
         mv $name ../
@@ -135,13 +127,18 @@ jobs:
       working-directory: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/
       id: anykernel
 
+    - name: Check the output directory before uploading
+      run: |
+        ls -al ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/
+
     - name: Upload to Release
       if: ${{ github.event.inputs.UPLOAD_TO_RELEASE == 'true' }}
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v1
       with:
         files: |
+          ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/Image.gz-dtb
+          ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/Image.gz
           ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/${{ steps.anykernel.outputs.zipname }}
-          ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/${{ steps.second_anykernel.outputs.second_zipname }}
         name: ${{ github.event.inputs.CODENAME }}-${{ github.run_id }}
         tag_name: ${{ github.run_id }}
         body: |
@@ -149,24 +146,47 @@ jobs:
           <b>Kernel successfully built!</b>, took ${{ steps.build.outputs.elapsed_time }} seconds.
           
           <b>Kernel tree</b>: ${{ github.event.inputs.KERNEL_TREE }}/tree/${{ github.event.inputs.KERNEL_TREE_BRANCH }}
+          <b>KernelSU</b>: ${{ steps.workspace.outputs.kernelsu }}
           <b>Action</b>: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - uses: actions/upload-artifact@v4
       if: ${{ success() && github.event.inputs.UPLOAD_TO_RELEASE != 'true' }}
       with:
-        name: Image.gz
-        path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/Image.gz
-    - uses: actions/upload-artifact@v4
-      if: ${{ success() && github.event.inputs.UPLOAD_TO_RELEASE != 'true' }}
-      with:
-        name: dtb
-        path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/dtb.img
+        name: Image.gz-dtb
+        path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/Image.gz-dtb
+
     - uses: actions/upload-artifact@v4
       if: ${{ success() && github.event.inputs.UPLOAD_TO_RELEASE != 'true' }}
       with:
         name: dtbo.img
         path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/dtbo.img
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ success() && github.event.inputs.UPLOAD_TO_RELEASE != 'true' }}
+      with:
+        name: dtb.img
+        path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/dtb.img
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ success() && github.event.inputs.UPLOAD_TO_RELEASE != 'true' }}
+      with:
+        name: Image-dtb
+        path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/Image-dtb
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ success() && github.event.inputs.UPLOAD_TO_RELEASE != 'true' }}
+      with:
+        name: Image.gz
+        path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/Image.gz
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ success() && github.event.inputs.UPLOAD_TO_RELEASE != 'true' }}
+      with:
+        name: Image
+        path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/Image
+
     - uses: actions/upload-artifact@v4
       if: ${{ success() && github.event.inputs.ANYKERNEL_URL != '' && github.event.inputs.UPLOAD_TO_RELEASE != 'true' }}
       with:
@@ -175,3 +195,40 @@ jobs:
           ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/AnyKernel3/
           !${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/AnyKernel3/.git
           !${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/AnyKernel3/.github
+
+    - name: Send Telegram notification for success
+      uses: appleboy/telegram-action@master
+      env: 
+        TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
+      if: ${{ success() && env.TELEGRAM_TO != '' && github.event.inputs.SEND_NOTIFICATION == 'true' }}
+      with:
+        to: ${{ secrets.TELEGRAM_TO }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        disable_web_page_preview: true
+        message: |
+          <b>${{ steps.workspace.outputs.build_title }}</b>
+          <b>Kernel successfully built!</b>, took ${{ steps.build.outputs.elapsed_time }} seconds.
+          
+          <b>Kernel tree</b>: ${{ github.event.inputs.KERNEL_TREE }}/tree/${{ github.event.inputs.KERNEL_TREE_BRANCH }}
+          <b>KernelSU</b>: ${{ steps.workspace.outputs.kernelsu }}
+          <b>Action</b>: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        document: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/${{ steps.anykernel.outputs.zipname }}
+        format: html
+
+    - name: Send Telegram notification for failure
+      uses: appleboy/telegram-action@master
+      env: 
+        TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
+      if: ${{ failure() && env.TELEGRAM_TO != '' && github.event.inputs.SEND_NOTIFICATION == 'true' }}
+      with:
+        to: ${{ secrets.TELEGRAM_TO }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        disable_web_page_preview: true
+        message: |
+          <b>${{ steps.workspace.outputs.build_title }}</b>
+          <b>Failed building kernel</b>, check ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for more info.
+          
+          <b>Kernel tree</b>: ${{ github.event.inputs.KERNEL_TREE }}/tree/${{ github.event.inputs.KERNEL_TREE_BRANCH }}
+          <b>KernelSU</b>: ${{ steps.workspace.outputs.kernelsu }}
+        format: html
+      continue-on-error: true
