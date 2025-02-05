@@ -95,6 +95,7 @@ jobs:
       run: |
         rm -rf KernelSU
         curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+        cp -rf "KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch" KernelSU-Next && cd ./KernelSU-Next && patch -p1 -f < "
         git submodule init && git submodule update
         export ARCH=arm64
         export SUBARCH=ARM64
