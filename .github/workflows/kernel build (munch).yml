@@ -30,10 +30,6 @@ on:
         description: 'Clang Git URL'
         default: 'https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379'
         required: false
-      SEND_NOTIFICATION:
-        description: 'Send Notification'
-        type: boolean
-        default: true
       ENABLE_KERNELSU:
         description: 'KernelSU'
         type: boolean
@@ -232,41 +228,4 @@ jobs:
         path: |
           ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/AnyKernel3/
           !${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/AnyKernel3/.git
-          !${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/AnyKernel3/.githu
-
-    - name: Send Telegram notification for success
-      uses: appleboy/telegram-action@master
-      env: 
-        TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
-      if: ${{ success() && env.TELEGRAM_TO != '' && github.event.inputs.SEND_NOTIFICATION == 'true' }}
-      with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        disable_web_page_preview: true
-        message: |
-          <b>${{ steps.workspace.outputs.build_title }}</b>
-          <b>Kernel successfully built!</b>, took ${{ steps.build.outputs.elapsed_time }} seconds.
-          
-          <b>Kernel tree</b>: ${{ github.event.inputs.KERNEL_TREE }}/tree/${{ github.event.inputs.KERNEL_TREE_BRANCH }}
-          <b>KernelSU</b>: ${{ steps.workspace.outputs.kernelsu }}
-          <b>Action</b>: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        document: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/${{ steps.anykernel.outputs.zipname }}
-        format: html
-
-    - name: Send Telegram notification for failure
-      uses: appleboy/telegram-action@master
-      env: 
-        TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
-      if: ${{ failure() && env.TELEGRAM_TO != '' && github.event.inputs.SEND_NOTIFICATION == 'true' }}
-      with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        disable_web_page_preview: true
-        message: |
-          <b>${{ steps.workspace.outputs.build_title }}</b>
-          <b>Failed building kernel</b>, check ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for more info.
-          
-          <b>Kernel tree</b>: ${{ github.event.inputs.KERNEL_TREE }}/tree/${{ github.event.inputs.KERNEL_TREE_BRANCH }}
-          <b>KernelSU</b>: ${{ steps.workspace.outputs.kernelsu }}
-        format: html
-      continue-on-error: true
+          !${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/AnyKernel3/.github
