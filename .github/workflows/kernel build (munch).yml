@@ -193,13 +193,13 @@ jobs:
       if: ${{ success() && github.event.inputs.UPLOAD_TO_RELEASE != 'true' }}
       with:
         name: Image
-        path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/*.profraw
+        path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/Image
 
     - uses: actions/upload-artifact@v4
       if: ${{ success() && github.event.inputs.UPLOAD_TO_RELEASE != 'true' }}
       with:
         name: PGO
-        path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/Image
+        path: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/*.profraw
 
     - uses: actions/upload-artifact@v4
       if: ${{ success() && github.event.inputs.ANYKERNEL_URL != '' && github.event.inputs.UPLOAD_TO_RELEASE != 'true' }}
