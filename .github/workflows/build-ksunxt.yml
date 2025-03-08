@@ -13,7 +13,7 @@ on:
       KERNEL_TREE_BRANCH:
         description: 'Kernel Tree Branch'
         required: true
-        default: 'munch-ksunxt'
+        default: 'munch'
       CODENAME:
         description: 'Phone Codename'
         default: 'munch'
@@ -93,9 +93,9 @@ jobs:
       
     - name: Building kernel
       run:
-        curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
-        cp -rf "0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch" KernelSU-Next && cd ./KernelSU-Next && patch -p1 -f < "0001-kernel-patch-susfs-v1.5.5-to-KernelSU-Next-v1.0.5.patch" && cd ..
         git submodule init && git submodule update
+        rm -rf KernelSU
+        curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
         export ARCH=arm64
         export SUBARCH=ARM64
         export KBUILD_BUILD_USER="build-user"
