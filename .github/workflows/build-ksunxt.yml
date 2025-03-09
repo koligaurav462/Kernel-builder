@@ -13,7 +13,7 @@ on:
       KERNEL_TREE_BRANCH:
         description: 'Kernel Tree Branch'
         required: true
-        default: 'munch'
+        default: 'Susfs'
       CODENAME:
         description: 'Phone Codename'
         default: 'munch'
@@ -92,7 +92,7 @@ jobs:
       id: kernel
       
     - name: Building kernel
-      run:
+      run: |
         git submodule init && git submodule update
         bash ksu.sh
         export ARCH=arm64
