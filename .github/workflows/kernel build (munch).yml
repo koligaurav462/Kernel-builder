@@ -101,6 +101,7 @@ jobs:
         sed -i -e '/KBUILD_LDFLAGS  += -mllvm -regalloc-enable-advisor=release/d' Makefile
         sed -i -e '/KBUILD_LDFLAGS  += -mllvm -enable-ml-inliner=release/d' Makefile
         sed -i -e '/CC_FLAGS_LTO	+= -fsplit-machine-functions/d' Makefile
+        sed -i 's|$(call if_changed,vdsold_and_vdso_check)|$(LD) $(VDSO_LDFLAGS) -o $@ $^|' arch/arm64/kernel/vdso/Makefile
       working-directory: ${{ steps.kernel.outputs.kernel-folder }}
       
     - name: Building kernel
