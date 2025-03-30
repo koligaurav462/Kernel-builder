@@ -110,6 +110,8 @@ jobs:
         export SUBARCH=ARM64
         export KBUILD_BUILD_USER="build-user"
         export KBUILD_BUILD_HOST="build-host"
+        export KBUILD_CFLAGS="-UCC_FLAGS_LTO -Ufsplit-machine-functions -Uregalloc-enable-advisor"
+        export KBUILD_LDFLAGS="-Uregalloc-enable-advisor -Uenable-ml-inliner"
         make O=out vendor/munch_defconfig PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH"
         make O=out CC=clang -j$(nproc --all) PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH" CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1 AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip
         echo "elapsed_time=$(echo "$(date +%s)"-"${{ steps.workspace.outputs.start_time }}" | bc)" >> $GITHUB_OUTPUT
