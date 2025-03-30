@@ -74,7 +74,7 @@ jobs:
 
     - name: Prepare the build environment
       run: |
-        sudo apt-get install flex libncurses5
+        sudo apt-get install flex libncurses6
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android-msm-redbull-4.19-android14 --depth=1
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android-msm-redbull-4.19-android14 --depth=1
         wget https://github.com/greenforce-project/greenforce_clang/releases/download/30032025/greenforce-clang-21.0.0git-30032025.tar.gz -O greenforce-clang.tar.gz
@@ -106,6 +106,7 @@ jobs:
         sed -i -e '/KBUILD_CFLAGS   += -mllvm -regalloc-enable-advisor=release/d' Makefile
         sed -i -e '/KBUILD_LDFLAGS  += -mllvm -regalloc-enable-advisor=release/d' Makefile
         sed -i -e '/KBUILD_LDFLAGS  += -mllvm -enable-ml-inliner=release/d' Makefile
+        sed -i -e '/KBUILD_CFLAGS  += -mllvm -enable-machine-outliner/d' Makefile
         sed -i '/-fsplit-machine-functions/d' Makefile
       working-directory: ${{ steps.kernel.outputs.kernel-folder }}
       
