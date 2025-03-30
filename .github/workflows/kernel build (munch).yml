@@ -84,6 +84,12 @@ jobs:
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
       id: tools
 
+    - name: Install LLD
+      run: |
+        sudo apt update
+        sudo apt install -y lld
+
+
     - name: Set Up Toolchain Paths
       run: |
         echo "PATH=$HOME/greenforce-clang/bin:$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH" >> $GITHUB_ENV
@@ -101,7 +107,6 @@ jobs:
         sed -i -e '/KBUILD_LDFLAGS  += -mllvm -regalloc-enable-advisor=release/d' Makefile
         sed -i -e '/KBUILD_LDFLAGS  += -mllvm -enable-ml-inliner=release/d' Makefile
         sed -i -e '/CC_FLAGS_LTO	+= -fsplit-machine-functions/d' Makefile
-        sed -i 's|$(call if_changed,vdsold_and_vdso_check)|$(LD) $(VDSO_LDFLAGS) -o $@ $^|' arch/arm64/kernel/vdso/Makefile
       working-directory: ${{ steps.kernel.outputs.kernel-folder }}
       
     - name: Building kernel
