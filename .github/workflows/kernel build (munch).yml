@@ -77,12 +77,16 @@ jobs:
         sudo apt-get install flex libncurses5
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android-msm-redbull-4.19-android14 --depth=1
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android-msm-redbull-4.19-android14 --depth=1
-        wget https://github.com/greenforce-project/greenforce_clang/releases/download/30032025/greenforce-clang-21.0.0git-30032025.tar.gz -O clang.tar.gz
-        mkdir clang
-        tar -xf clang.tar.gz -C clang
+        wget https://github.com/greenforce-project/greenforce_clang/releases/download/30032025/greenforce-clang-21.0.0git-30032025.tar.gz -O greenforce-clang.tar.gz
+        mkdir greenforce-clang
+        tar -xf greenforce-clang.tar.gz -C greenforce-clang
         echo "tools-folder=$(pwd)" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
       id: tools
+
+    - name: Set Up Toolchain Paths
+      run: |
+        echo "PATH=$HOME/greenforce-clang/bin:$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH" >> $GITHUB_ENV
 
     - name: Clone kernel source
       run: |
@@ -100,8 +104,6 @@ jobs:
         export KBUILD_BUILD_HOST="build-host"
         export PATH="$HOME/greenforce-clang/bin:$PATH"
         export LD_LIBRARY_PATH="$HOME/greenforce-clang/lib:$LD_LIBRARY_PATH"
-        export KCFLAGS="-Wno-unused-command-line-argument"
-        export DISABLE_REGALLOC_ADVISOR="-mllvm -disable-regalloc-advisor"
         make O=out vendor/munch_defconfig PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH"
         make O=out CC=clang -j$(nproc --all) PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH" CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1 AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip
         echo "elapsed_time=$(echo "$(date +%s)"-"${{ steps.workspace.outputs.start_time }}" | bc)" >> $GITHUB_OUTPUT
