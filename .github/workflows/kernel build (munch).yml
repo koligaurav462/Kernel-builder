@@ -94,6 +94,13 @@ jobs:
         echo "kernel-folder=$(pwd)/kernel_tree" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
       id: kernel
+
+    - name: Disable LLVM Regalloc & ML Inliner Flags
+      run: |
+        sed -i -e '/KBUILD_CFLAGS   += -mllvm -regalloc-enable-advisor=release/d' Makefile
+        sed -i -e '/KBUILD_LDFLAGS  += -mllvm -regalloc-enable-advisor=release/d' Makefile
+        sed -i -e '/KBUILD_LDFLAGS  += -mllvm -enable-ml-inliner=release/d' Makefile
+      working-directory: ${{ steps.kernel.outputs.kernel-folder }}
       
     - name: Building kernel
       run: |
