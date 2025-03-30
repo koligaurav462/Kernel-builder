@@ -108,6 +108,9 @@ jobs:
         sed -i -e '/KBUILD_LDFLAGS  += -mllvm -enable-ml-inliner=release/d' Makefile
         sed -i -e '/KBUILD_CFLAGS  += -mllvm -enable-machine-outliner/d' Makefile
         sed -i '/-fsplit-machine-functions/d' Makefile
+        sed -i '/KBUILD_LDFLAGS\s*\+=\s*-mllvm -mcpu=cortex-a55/d' kernel_tree/arch/arm64/Makefile
+        sed -i '/KBUILD_CFLAGS\s*\+=\s*-mcpu=cortex-a77.cortex-a55/d' kernel_tree/arch/arm64/Makefile
+        sed -i '/KBUILD_AFLAGS\s*\+=\s*-mcpu=cortex-a77.cortex-a55/d' kernel_tree/arch/arm64/Makefile
       working-directory: ${{ steps.kernel.outputs.kernel-folder }}
       
     - name: Building kernel
