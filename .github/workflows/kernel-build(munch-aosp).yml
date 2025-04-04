@@ -1,4 +1,4 @@
-name: Kernel Build (munch) - clang-r563880
+name: Kernel Build (munch) - clang-r547379
 
 on:
   workflow_dispatch:
@@ -28,7 +28,7 @@ on:
         required: false
       CLANG_GIT_LINK:
         description: 'Clang Git URL'
-        default: 'https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r563880'
+        default: 'https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379'
         required: false
       SEND_NOTIFICATION:
         description: 'Send Notification'
@@ -77,7 +77,7 @@ jobs:
         sudo apt-get install flex libncurses5
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android-msm-redbull-4.19-android14 --depth=1
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android-msm-redbull-4.19-android14 --depth=1
-        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r563880.tar.gz -O clang.tar.gz
+        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379.tar.gz -O clang.tar.gz
         mkdir clang
         tar -xf clang.tar.gz -C clang
         echo "tools-folder=$(pwd)" >> $GITHUB_OUTPUT
