@@ -28,7 +28,7 @@ on:
         required: false
       CLANG_GIT_LINK:
         description: 'Clang Git URL'
-        default: 'https://github.com/greenforce-project/greenforce_clang/releases/download/30032025/greenforce-clang-21.0.0git-30032025.tar.gz'
+        default: 'https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379'
         required: false
       SEND_NOTIFICATION:
         description: 'Send Notification'
@@ -74,25 +74,15 @@ jobs:
 
     - name: Prepare the build environment
       run: |
-        sudo apt-get install flex libncurses6
+        sudo apt-get install flex libncurses5
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android-msm-redbull-4.19-android14 --depth=1
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android-msm-redbull-4.19-android14 --depth=1
-        wget https://github.com/greenforce-project/greenforce_clang/releases/download/30032025/greenforce-clang-21.0.0git-30032025.tar.gz -O greenforce-clang.tar.gz
-        mkdir greenforce-clang
-        tar -xf greenforce-clang.tar.gz -C greenforce-clang
+        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379.tar.gz -O clang.tar.gz
+        mkdir clang
+        tar -xf clang.tar.gz -C clang
         echo "tools-folder=$(pwd)" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
       id: tools
-
-    - name: Install LLD
-      run: |
-        sudo apt update
-        sudo apt install -y lld
-
-
-    - name: Set Up Toolchain Paths
-      run: |
-        echo "PATH=$HOME/greenforce-clang/bin:$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH" >> $GITHUB_ENV
 
     - name: Clone kernel source
       run: |
@@ -100,18 +90,6 @@ jobs:
         echo "kernel-folder=$(pwd)/kernel_tree" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
       id: kernel
-
-    - name: Disable LLVM Regalloc & ML Inliner Flags
-      run: |
-        sed -i -e '/KBUILD_CFLAGS   += -mllvm -regalloc-enable-advisor=release/d' Makefile
-        sed -i -e '/KBUILD_LDFLAGS  += -mllvm -regalloc-enable-advisor=release/d' Makefile
-        sed -i -e '/KBUILD_LDFLAGS  += -mllvm -enable-ml-inliner=release/d' Makefile
-        sed -i -e '/KBUILD_CFLAGS  += -mllvm -enable-machine-outliner/d' Makefile
-        sed -i '/-fsplit-machine-functions/d' Makefile
-        sed -i '/KBUILD_LDFLAGS\s*\+=\s*-mllvm -mcpu=cortex-a55/d' arch/arm64/Makefile
-        sed -i '/KBUILD_CFLAGS\s*\+=\s*-mcpu=cortex-a77.cortex-a55/d' arch/arm64/Makefile
-        sed -i '/KBUILD_AFLAGS\s*\+=\s*-mcpu=cortex-a77.cortex-a55/d' arch/arm64/Makefile
-      working-directory: ${{ steps.kernel.outputs.kernel-folder }}
       
     - name: Building kernel
       run: |
@@ -120,10 +98,8 @@ jobs:
         export SUBARCH=ARM64
         export KBUILD_BUILD_USER="build-user"
         export KBUILD_BUILD_HOST="build-host"
-        export KBUILD_CFLAGS="-UCC_FLAGS_LTO -Ufsplit-machine-functions -Uregalloc-enable-advisor"
-        export KBUILD_LDFLAGS="-Uregalloc-enable-advisor -Uenable-ml-inliner"
         make O=out vendor/munch_defconfig PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH"
-        make O=out CC=clang LD=ld.lld -j$(nproc --all) PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH" CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1 AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip
+        make O=out CC=clang -j$(nproc --all) PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH" CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1
         echo "elapsed_time=$(echo "$(date +%s)"-"${{ steps.workspace.outputs.start_time }}" | bc)" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.kernel.outputs.kernel-folder }}
       id: build
