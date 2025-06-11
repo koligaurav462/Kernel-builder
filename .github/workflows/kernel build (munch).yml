@@ -80,6 +80,13 @@ jobs:
         wget https://github.com/Impqxr/aosp_clang_ci/releases/download/13289611/clang-13289611-linux-x86.tar.xz -O clang.tar.gz
         mkdir clang
         tar -xf clang.tar.gz -C clang
+        cd clang
+          if [ -d clang-* ]; then
+            mv clang-*/* .
+          fi
+        cd ..
+        rm clang.tar.gz
+          
         echo "tools-folder=$(pwd)" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
       id: tools
