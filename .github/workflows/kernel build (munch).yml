@@ -28,7 +28,7 @@ on:
         required: false
       CLANG_GIT_LINK:
         description: 'Clang Git URL'
-        default: 'https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379'
+        default: 'https://github.com/Impqxr/aosp_clang_ci/releases/download/13289611/clang-13289611-linux-x86.tar.xz'
         required: false
       SEND_NOTIFICATION:
         description: 'Send Notification'
@@ -77,9 +77,9 @@ jobs:
         sudo apt-get install flex libncurses5
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android-msm-redbull-4.19-android14 --depth=1
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android-msm-redbull-4.19-android14 --depth=1
-        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379.tar.gz -O clang.tar.gz
+        wget https://github.com/Impqxr/aosp_clang_ci/releases/download/13289611/clang-13289611-linux-x86.tar.xz -O clang.tar.xz
         mkdir clang
-        tar -xf clang.tar.gz -C clang
+        tar -xf clang.tar.xz -C clang
         echo "tools-folder=$(pwd)" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
       id: tools
