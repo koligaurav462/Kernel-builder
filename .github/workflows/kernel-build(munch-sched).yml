@@ -1,4 +1,4 @@
-name: Kernel Build (munch) - clang-r547379
+name: Kernel Build (munch) - clang-r563880
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ on:
       KERNEL_TREE_BRANCH:
         description: 'Kernel Tree Branch'
         required: true
-        default: 'Susfs'
+        default: 'munch-sched'
       CODENAME:
         description: 'Phone Codename'
         default: 'munch'
@@ -28,7 +28,7 @@ on:
         required: false
       CLANG_GIT_LINK:
         description: 'Clang Git URL'
-        default: 'https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379'
+        default: 'https://github.com/Impqxr/aosp_clang_ci/releases/download/13289611/clang-13289611-linux-x86.tar.xz'
         required: false
       SEND_NOTIFICATION:
         description: 'Send Notification'
@@ -77,9 +77,16 @@ jobs:
         sudo apt-get install flex libncurses5
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android-msm-redbull-4.19-android14 --depth=1
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android-msm-redbull-4.19-android14 --depth=1
-        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379.tar.gz -O clang.tar.gz
+        wget https://github.com/Impqxr/aosp_clang_ci/releases/download/13289611/clang-13289611-linux-x86.tar.xz -O clang.tar.gz
         mkdir clang
         tar -xf clang.tar.gz -C clang
+        cd clang
+          if [ -d clang-* ]; then
+            mv clang-*/* .
+          fi
+        cd ..
+        rm clang.tar.gz
+          
         echo "tools-folder=$(pwd)" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
       id: tools
@@ -96,8 +103,8 @@ jobs:
         git submodule init && git submodule update
         export ARCH=arm64
         export SUBARCH=ARM64
-        export KBUILD_BUILD_USER="build-user"
-        export KBUILD_BUILD_HOST="build-host"
+        export KBUILD_BUILD_USER="Gaurav"
+        export KBUILD_BUILD_HOST="munch2004"
         make O=out vendor/munch_defconfig PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH"
         make O=out CC=clang -j$(nproc --all) PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH" CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1
         echo "elapsed_time=$(echo "$(date +%s)"-"${{ steps.workspace.outputs.start_time }}" | bc)" >> $GITHUB_OUTPUT
