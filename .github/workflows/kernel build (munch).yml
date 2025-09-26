@@ -100,6 +100,7 @@ jobs:
       
     - name: Building kernel
       run: |
+        chmod +x nextpatch.sh
         ./nextpatch.sh
         export ARCH=arm64
         export SUBARCH=ARM64
