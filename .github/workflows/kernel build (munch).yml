@@ -101,7 +101,6 @@ jobs:
     - name: Building kernel
       run: |
         bash nextpatch.sh
-        cd KernelSU-Next
         awk '
         /return check_v2_signature/ {
           print "return (check_v2_signature(path, EXPECTED_NEXT_SIZE, EXPECTED_NEXT_HASH)"
@@ -114,8 +113,6 @@ jobs:
         next
         }
         {print}
-        ' KernelSU-Next/kernel/apk_sign.c > tmp && mv tmp KernelSU-Next/kernel/apk_sign.c
-        cd ..
         export ARCH=arm64
         export SUBARCH=ARM64
         export KBUILD_BUILD_USER="build-user"
