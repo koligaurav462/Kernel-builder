@@ -100,9 +100,7 @@ jobs:
       
     - name: Building kernel
       run: |
-        patch -p1 -f < "ksu.patch"
-        chmod +x nextpatch.sh
-        ./nextpatch.sh
+        bash nextpatch.sh
         export ARCH=arm64
         export SUBARCH=ARM64
         export KBUILD_BUILD_USER="build-user"
