@@ -101,6 +101,7 @@ jobs:
     - name: Building kernel
       run: |
         bash nextpatch.sh
+        git submodule update --init
         export ARCH=arm64
         export SUBARCH=ARM64
         export KBUILD_BUILD_USER="build-user"
