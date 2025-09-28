@@ -101,7 +101,7 @@ jobs:
     - name: Building kernel
       run: |
         bash nextpatch.sh
-        git submodule update --init
+        git submodule update --init KernelSU-Next
         scripts/config --file out/.config \
         -e KSU_MANUAL_HOOK \
         -e KSU_SUSFS_HAS_MAGIC_MOUNT \
