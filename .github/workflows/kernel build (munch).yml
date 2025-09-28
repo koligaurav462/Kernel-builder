@@ -100,7 +100,6 @@ jobs:
     
     - name: Building kernel
       run: |
-        git submodule update --init KernelSU-Next
         bash nextpatch.sh
         scripts/config --file out/.config \
         -e KSU_MANUAL_HOOK \
