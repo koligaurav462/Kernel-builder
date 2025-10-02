@@ -18,17 +18,9 @@ on:
         description: 'Phone Codename'
         default: 'munch'
         required: true
-      ANYKERNEL_URL:
-        description: 'AnyKernel Url (leave blank if you dont want AnyKernel)'
-        default: 'https://github.com/itisFarzin-Phone/AnyKernel3'
-        required: false
-      ANYKERNEL_BRANCH:
-        description: 'AnyKernel Branch (defaults to codename)'
-        default: 'munch'
-        required: false
       CLANG_GIT_LINK:
         description: 'Clang Git URL'
-        default: 'https://github.com/Impqxr/aosp_clang_ci/releases/download/13289611/clang-13289611-linux-x86.tar.xz'
+        default: 'https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/20052113d2a5552cfff78ac7b21fd7953cc1c592/clang-r563880.tar.gz'
         required: false
       SEND_NOTIFICATION:
         description: 'Send Notification'
@@ -77,9 +69,9 @@ jobs:
         sudo apt-get install flex libncurses5
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android-msm-redbull-4.19-android14 --depth=1
         git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android-msm-redbull-4.19-android14 --depth=1
-        wget https://github.com/Impqxr/aosp_clang_ci/releases/download/13289611/clang-13289611-linux-x86.tar.xz -O clang.tar.gz
+        wget -nv https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/20052113d2a5552cfff78ac7b21fd7953cc1c592/clang-r563880.tar.gz -O clang.tar.gz
         mkdir clang
-        tar -xf clang.tar.gz -C clang
+        tar -xzf clang.tar.gz -C clang
         cd clang
           if [ -d clang-* ]; then
             mv clang-*/* .
@@ -97,42 +89,19 @@ jobs:
         echo "kernel-folder=$(pwd)/kernel_tree" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.workspace.outputs.workspace-folder }}
       id: kernel
-      
+    
     - name: Building kernel
       run: |
-        git submodule init && git submodule update
+        bash nextpatch.sh
         export ARCH=arm64
         export SUBARCH=ARM64
-        export KBUILD_BUILD_USER="Gaurav"
-        export KBUILD_BUILD_HOST="munch2004"
+        export KBUILD_BUILD_USER="build-user"
+        export KBUILD_BUILD_HOST="build-host"
         make O=out vendor/munch_defconfig PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH"
         make O=out CC=clang -j$(nproc --all) PATH="${{ steps.tools.outputs.tools-folder }}/clang/bin:$PATH" CROSS_COMPILE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1
         echo "elapsed_time=$(echo "$(date +%s)"-"${{ steps.workspace.outputs.start_time }}" | bc)" >> $GITHUB_OUTPUT
       working-directory: ${{ steps.kernel.outputs.kernel-folder }}
       id: build
-
-    - name: AnyKernel3
-      if: ${{ success() && github.event.inputs.ANYKERNEL_URL != '' }}
-      continue-on-error: true
-      run: |
-        if [[ -z "${{ github.event.inputs.ANYKERNEL_BRANCH }}" ]]; then
-          anykernel_branch=${{ github.event.inputs.CODENAME }}
-        else
-          anykernel_branch=${{ github.event.inputs.ANYKERNEL_BRANCH }}
-        fi
-        git clone --recursive --depth=1 ${{ github.event.inputs.ANYKERNEL_URL }} -b $anykernel_branch AnyKernel3
-        if [ -e "Image.gz-dtb" ]; then
-          cp -f Image.gz-dtb AnyKernel3
-        elif [ -e "Image.gz" ]; then
-          cp -f Image.gz AnyKernel3
-        fi
-        name=FlashableKernel-${{ github.event.inputs.CODENAME }}${{ fromJSON('["", "-KSU"]')[fromJSON(github.event.inputs.ENABLE_KERNELSU)] }}.zip
-        cd AnyKernel3
-        zip -q -r $name *
-        mv $name ../
-        echo "zipname=$name" >> $GITHUB_OUTPUT
-      working-directory: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/
-      id: anykernel
 
     - name: Check the output directory before uploading
       run: |
@@ -202,40 +171,3 @@ jobs:
           ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/AnyKernel3/
           !${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/AnyKernel3/.git
           !${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/AnyKernel3/.github
-
-    - name: Send Telegram notification for success
-      uses: appleboy/telegram-action@master
-      env: 
-        TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
-      if: ${{ success() && env.TELEGRAM_TO != '' && github.event.inputs.SEND_NOTIFICATION == 'true' }}
-      with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        disable_web_page_preview: true
-        message: |
-          <b>${{ steps.workspace.outputs.build_title }}</b>
-          <b>Kernel successfully built!</b>, took ${{ steps.build.outputs.elapsed_time }} seconds.
-          
-          <b>Kernel tree</b>: ${{ github.event.inputs.KERNEL_TREE }}/tree/${{ github.event.inputs.KERNEL_TREE_BRANCH }}
-          <b>KernelSU</b>: ${{ steps.workspace.outputs.kernelsu }}
-          <b>Action</b>: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        document: ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/${{ steps.anykernel.outputs.zipname }}
-        format: html
-
-    - name: Send Telegram notification for failure
-      uses: appleboy/telegram-action@master
-      env: 
-        TELEGRAM_TO: ${{ secrets.TELEGRAM_TO }}
-      if: ${{ failure() && env.TELEGRAM_TO != '' && github.event.inputs.SEND_NOTIFICATION == 'true' }}
-      with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        disable_web_page_preview: true
-        message: |
-          <b>${{ steps.workspace.outputs.build_title }}</b>
-          <b>Failed building kernel</b>, check ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} for more info.
-          
-          <b>Kernel tree</b>: ${{ github.event.inputs.KERNEL_TREE }}/tree/${{ github.event.inputs.KERNEL_TREE_BRANCH }}
-          <b>KernelSU</b>: ${{ steps.workspace.outputs.kernelsu }}
-        format: html
-      continue-on-error: true
