@@ -92,6 +92,7 @@ jobs:
     
     - name: Building kernel
       run: |
+        git submodule update --init --recursive
         export ARCH=arm64
         export SUBARCH=ARM64
         export KBUILD_BUILD_USER="build-user"
