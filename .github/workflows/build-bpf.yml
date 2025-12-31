@@ -20,7 +20,7 @@ on:
         required: true
       CLANG_GIT_LINK:
         description: 'Clang Git URL'
-        default: 'https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/20052113d2a5552cfff78ac7b21fd7953cc1c592/clang-r563880.tar.gz'
+        default: 'https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/508ea7dd0d8f681904d0422e98af9613aaabf180/clang-r574158.tar.gz'
         required: false
       SEND_NOTIFICATION:
         description: 'Send Notification'
