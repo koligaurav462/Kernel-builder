@@ -9,12 +9,12 @@ on:
         required: false
       KERNEL_TREE:
         description: 'Kernel Tree'
-        default: 'https://github.com/koligaurav462/kernel_sm8250.git'
+        default: 'https://github.com/koligaurav462/xiaomi_kernel_sm8250.git'
         required: true
       KERNEL_TREE_BRANCH:
         description: 'Kernel Tree Branch'
         required: true
-        default: 'munch'
+        default: 'main'
       CODENAME:
         description: 'Phone Codename'
         default: 'munch'
