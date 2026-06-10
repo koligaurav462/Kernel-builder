@@ -1,3 +1,4 @@
+
 name: Kernel Build (munch) - clang-r563880
 
 on:
@@ -8,12 +9,12 @@ on:
         required: false
       KERNEL_TREE:
         description: 'Kernel Tree'
-        default: 'https://github.com/koligaurav462/kernel_xiaomi_sm8250.git'
+        default: 'https://github.com/koligaurav462/kernel_sm8250.git'
         required: true
       KERNEL_TREE_BRANCH:
         description: 'Kernel Tree Branch'
         required: true
-        default: 'A16'
+        default: 'test-bpf'
       CODENAME:
         description: 'Phone Codename'
         default: 'munch'
@@ -92,7 +93,7 @@ jobs:
     
     - name: Building kernel
       run: |
-        bash nextpatch.sh
+        git submodule init && git submodule update
         export ARCH=arm64
         export SUBARCH=ARM64
         export KBUILD_BUILD_USER="build-user"
