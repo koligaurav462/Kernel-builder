@@ -1,5 +1,5 @@
 
-name: Kernel Build (munch) - clang-r563880
+name: Kernel Build (munch) - clang-r596125
 
 on:
   workflow_dispatch:
