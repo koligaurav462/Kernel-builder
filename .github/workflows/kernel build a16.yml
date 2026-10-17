@@ -14,7 +14,7 @@ on:
       KERNEL_TREE_BRANCH:
         description: 'Kernel Tree Branch'
         required: true
-        default: 'staging-bpf'
+        default: 'bpf'
       CODENAME:
         description: 'Phone Codename'
         default: 'munch'
